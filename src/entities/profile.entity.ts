@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from './user.entity';
+import { Interest } from './interest.entity';
 
 @Entity()
 export class Profile {
@@ -30,4 +31,12 @@ export class Profile {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => Interest, (interest) => interest.profiles, { cascade: false })
+  @JoinTable({
+    name: 'profile_interests',
+    joinColumn: { name: 'profileId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'interestId', referencedColumnName: 'id' },
+  })
+  interests: Interest[];
 }

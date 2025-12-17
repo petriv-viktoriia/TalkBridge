@@ -57,14 +57,15 @@ export class ProfilesService {
     }
 
     async findOne(id: number): Promise<ProfileDto> {
-        const profile = await this.profilesRepository.findOne({ where: { id }, relations: ['user'] });
+        const profile = await this.profilesRepository.findOne({ where: { id }, relations: ['user', 'interests'] });
         if (!profile) throw new NotFoundException(`Profile ${id} not found`);
         return ProfileMapper.toDto(profile);
     }
 
     async findAll(minAge?: number, maxAge?: number): Promise<ProfileDto[]> {
         const query = this.profilesRepository.createQueryBuilder('profile')
-            .leftJoinAndSelect('profile.user', 'user');
+            .leftJoinAndSelect('profile.user', 'user')
+            .leftJoinAndSelect('profile.interests', 'interests');
 
         if (minAge !== undefined) {
             query.andWhere('profile.age >= :minAge', { minAge });

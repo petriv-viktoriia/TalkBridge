@@ -13,6 +13,10 @@ export class ProfileMapper {
       age: profile.age,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
+      interests: profile.interests?.map(interest => ({
+        id: interest.id,
+        name: interest.name,
+      })),
     };
   }
 
