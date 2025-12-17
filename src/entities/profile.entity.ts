@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from './user.entity';
 import { Interest } from './interest.entity';
+import { Language } from './language.entity';
 
 @Entity()
 export class Profile {
@@ -39,4 +40,12 @@ export class Profile {
     inverseJoinColumn: { name: 'interestId', referencedColumnName: 'id' },
   })
   interests: Interest[];
+
+  @ManyToMany(() => Language, (language) => language.profiles, { cascade: false })
+  @JoinTable({
+    name: 'profile_languages',
+    joinColumn: { name: 'profileId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'languageId', referencedColumnName: 'id' },
+  })
+  languages: Language[];
 }

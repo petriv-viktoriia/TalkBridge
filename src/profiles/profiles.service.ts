@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Profile } from 'src/entities/profile.entity';
 import { ProfileDto } from 'src/dtos/profiles/profile.dto';
 import { ProfileMapper } from 'src/mappers/profile.mapper';
 import { User } from 'src/entities/user.entity';
+import { Language } from 'src/entities/language.entity';
+import { AssignLanguagesDto } from 'src/dtos/languages/assign.languages.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -14,6 +16,9 @@ export class ProfilesService {
 
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+
+        @InjectRepository(Language)
+        private languageRepository: Repository<Language>,
     ) {}
 
     async create(dto: ProfileDto): Promise<ProfileDto> {
@@ -32,6 +37,8 @@ export class ProfilesService {
         const profile = this.profilesRepository.create({
             ...dto,
             user,
+            interests: [],
+            languages: [],
         });
 
         const saved = await this.profilesRepository.save(profile);
@@ -57,7 +64,7 @@ export class ProfilesService {
     }
 
     async findOne(id: number): Promise<ProfileDto> {
-        const profile = await this.profilesRepository.findOne({ where: { id }, relations: ['user', 'interests'] });
+        const profile = await this.profilesRepository.findOne({ where: { id }, relations: ['user', 'interests', 'languages'] });
         if (!profile) throw new NotFoundException(`Profile ${id} not found`);
         return ProfileMapper.toDto(profile);
     }
@@ -65,7 +72,8 @@ export class ProfilesService {
     async findAll(minAge?: number, maxAge?: number): Promise<ProfileDto[]> {
         const query = this.profilesRepository.createQueryBuilder('profile')
             .leftJoinAndSelect('profile.user', 'user')
-            .leftJoinAndSelect('profile.interests', 'interests');
+            .leftJoinAndSelect('profile.interests', 'interests')
+            .leftJoinAndSelect('profile.languages', 'languages');
 
         if (minAge !== undefined) {
             query.andWhere('profile.age >= :minAge', { minAge });
@@ -83,4 +91,40 @@ export class ProfilesService {
         const result = await this.profilesRepository.delete(id);
         if (result.affected === 0) throw new NotFoundException(`Profile ${id} not found`);
     }
+
+    async assignLanguages(profileId: number, dto: AssignLanguagesDto) {
+  const profile = await this.profilesRepository.findOne({
+    where: { id: profileId },
+    relations: ['languages'],
+  });
+
+  if (!profile) throw new NotFoundException('Profile not found');
+
+  const languages = await this.languageRepository.findBy({
+    id: In(dto.languageIds),
+  });
+
+  profile.languages.push(
+    ...languages.filter(
+      l => !profile.languages.some(pl => pl.id === l.id),
+    ),
+  );
+
+  return this.profilesRepository.save(profile);
+}
+
+async unassignLanguages(profileId: number, dto: AssignLanguagesDto) {
+  const profile = await this.profilesRepository.findOne({
+    where: { id: profileId },
+    relations: ['languages'],
+  });
+
+  if (!profile) throw new NotFoundException('Profile not found');
+
+  profile.languages = profile.languages.filter(
+    l => !dto.languageIds.includes(l.id),
+  );
+
+  return this.profilesRepository.save(profile);
+}
 }

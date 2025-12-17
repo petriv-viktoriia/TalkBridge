@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProfilesModule } from './profiles/profiles.module';
 import { InterestsModule } from './interests/interests.module';
+import { LanguagesModule } from './languages/languages.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InterestsModule } from './interests/interests.module';
     UsersModule,
     ProfilesModule,
     InterestsModule,
+    LanguagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

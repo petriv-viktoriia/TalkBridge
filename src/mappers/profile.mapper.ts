@@ -17,6 +17,12 @@ export class ProfileMapper {
         id: interest.id,
         name: interest.name,
       })),
+      languages: profile.languages?.map(language => ({
+        id: language.id,
+        name: language.name,
+        level: language.level,
+        type: language.type,
+      })),
     };
   }
 
