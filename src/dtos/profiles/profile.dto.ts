@@ -37,4 +37,7 @@ export class ProfileDto {
 
   @IsOptional()
   interests?: { id: number; name: string }[];
+
+  @IsOptional()
+  languages?: { id: number; name: string; level: string; type: string }[];
 }
