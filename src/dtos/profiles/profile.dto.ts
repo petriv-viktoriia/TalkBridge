@@ -34,4 +34,7 @@ export class ProfileDto {
 
   @IsOptional()
   updatedAt?: Date;
+
+  @IsOptional()
+  interests?: { id: number; name: string }[];
 }
