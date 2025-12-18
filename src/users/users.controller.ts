@@ -1,14 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Put, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserCreateDto } from 'src/dtos/users/user.create.dto';
 import { UserUpdateDto } from 'src/dtos/users/user.update.dto';
 import { UserDto } from 'src/dtos/users/user.dto';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
-    @Post()
+  @Post()
   async createUser(@Body() createUserDto: UserCreateDto): Promise<UserDto> {
     return this.usersService.create(createUserDto);
   }
@@ -39,4 +41,20 @@ export class UsersController {
     return { message: `User with id ${id} has been deleted` };
   }
 
+  @Get('me')
+  getMe(@Req() req) {
+    return this.usersService.findById(req.user.id);
+  }
+
+  // Оновити власний профіль
+  @Put('me')
+  updateMe(@Req() req, @Body() updateUserDto: UserUpdateDto) {
+    return this.usersService.update(req.user.id, updateUserDto);
+  }
+
+  // Видалити власний акаунт
+  @Delete('me')
+  deleteMe(@Req() req) {
+    return this.usersService.delete(req.user.id);
+  }
 }

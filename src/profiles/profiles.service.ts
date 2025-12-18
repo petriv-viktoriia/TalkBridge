@@ -69,19 +69,17 @@ export class ProfilesService {
         return ProfileMapper.toDto(profile);
     }
 
-    async findAll(minAge?: number, maxAge?: number): Promise<ProfileDto[]> {
+    async findAll(minAge?: number, maxAge?: number, languageId?: number, level?: string, type?: string): Promise<ProfileDto[]> {
         const query = this.profilesRepository.createQueryBuilder('profile')
             .leftJoinAndSelect('profile.user', 'user')
             .leftJoinAndSelect('profile.interests', 'interests')
             .leftJoinAndSelect('profile.languages', 'languages');
 
-        if (minAge !== undefined) {
-            query.andWhere('profile.age >= :minAge', { minAge });
-        }
-
-        if (maxAge !== undefined) {
-            query.andWhere('profile.age <= :maxAge', { maxAge });
-        }
+        if (minAge !== undefined) query.andWhere('profile.age >= :minAge', { minAge });
+        if (maxAge !== undefined) query.andWhere('profile.age <= :maxAge', { maxAge });
+        if (languageId) query.andWhere('language.id = :languageId', { languageId });
+        if (level) query.andWhere('language.level = :level', { level });
+        if (type) query.andWhere('language.type = :type', { type });
 
         const profiles = await query.getMany();
         return ProfileMapper.toDtoList(profiles);
@@ -93,38 +91,66 @@ export class ProfilesService {
     }
 
     async assignLanguages(profileId: number, dto: AssignLanguagesDto) {
-  const profile = await this.profilesRepository.findOne({
-    where: { id: profileId },
-    relations: ['languages'],
-  });
+      const profile = await this.profilesRepository.findOne({
+        where: { id: profileId },
+        relations: ['languages'],
+      });
 
-  if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) throw new NotFoundException('Profile not found');
 
-  const languages = await this.languageRepository.findBy({
-    id: In(dto.languageIds),
-  });
+      const languages = await this.languageRepository.findBy({
+        id: In(dto.languageIds),
+      });
 
-  profile.languages.push(
-    ...languages.filter(
-      l => !profile.languages.some(pl => pl.id === l.id),
-    ),
-  );
+      profile.languages.push(
+        ...languages.filter(
+          l => !profile.languages.some(pl => pl.id === l.id),
+        ),
+      );
 
-  return this.profilesRepository.save(profile);
-}
+      return this.profilesRepository.save(profile);
+    }
 
-async unassignLanguages(profileId: number, dto: AssignLanguagesDto) {
-  const profile = await this.profilesRepository.findOne({
-    where: { id: profileId },
-    relations: ['languages'],
-  });
+    async unassignLanguages(profileId: number, dto: AssignLanguagesDto) {
+      const profile = await this.profilesRepository.findOne({
+        where: { id: profileId },
+        relations: ['languages'],
+      });
 
-  if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) throw new NotFoundException('Profile not found');
 
-  profile.languages = profile.languages.filter(
-    l => !dto.languageIds.includes(l.id),
-  );
+      profile.languages = profile.languages.filter(
+        l => !dto.languageIds.includes(l.id),
+      );
 
-  return this.profilesRepository.save(profile);
-}
+      return this.profilesRepository.save(profile);
+    }
+
+
+    async findByUserId(userId: number): Promise<ProfileDto> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } }, relations: ['languages', 'user'] });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+      return ProfileMapper.toDto(profile);
+    }
+
+    async updateByUserId(userId: number, dto: ProfileDto): Promise<ProfileDto> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } } });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+
+      Object.assign(profile, dto);
+      const updated = await this.profilesRepository.save(profile);
+      return ProfileMapper.toDto(updated);
+    }
+
+    async deleteByUserId(userId: number): Promise<void> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } } });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+      await this.profilesRepository.remove(profile);
+    }
 }

@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { LanguagesService } from './languages.service';
 import { LanguageDto } from 'src/dtos/languages/language.dto';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('languages')
 export class LanguagesController {
     constructor(private readonly languagesService: LanguagesService) {}
@@ -11,7 +13,7 @@ export class LanguagesController {
         return this.languagesService.create(dto);
     }
 
-    @Get()
+    @Get('all')
     findAll() {
         return this.languagesService.findAll();
     }
@@ -29,5 +31,10 @@ export class LanguagesController {
     @Delete(':id')
     delete(@Param('id') id: string) {
         return this.languagesService.delete(+id);
+    }
+
+    @Get()
+    getUserLanguages(@Req() req) {
+        return this.languagesService.findByUserId(req.user.id);
     }
 }

@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { InterestsService } from './interests.service';
 import { InterestDto } from 'src/dtos/interests/interest.dto';
 import { AssignInterestDto } from 'src/dtos/interests/assign.interest.dto';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('interests')
 export class InterestsController {
   constructor(private readonly interestsService: InterestsService) {}

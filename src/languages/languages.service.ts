@@ -69,4 +69,11 @@ export class LanguagesService {
     const language = await this.findOne(id);
     return this.languageRepository.remove(language);
   }
+
+  async findByUserId(userId: number) {
+    return this.languageRepository
+      .createQueryBuilder('language')
+      .innerJoin('language.profiles', 'profile', 'profile.userId = :userId', { userId })
+      .getMany();
+  }
 }
