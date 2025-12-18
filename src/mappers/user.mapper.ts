@@ -10,6 +10,7 @@ export class UserMapper {
         userDto.lastLogin = user.lastLogin;
         userDto.createdAt = user.createdAt;
         userDto.updatedAt = user.updatedAt;
+        userDto.role = user.role;
         return userDto;
     }
 

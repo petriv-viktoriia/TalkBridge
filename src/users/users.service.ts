@@ -61,4 +61,18 @@ export class UsersService {
 
       await this.usersRepository.delete(id);
     }
+
+    async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async updateTokens(user: User) {
+    return this.usersRepository.save(user);
+  }
+
+  async findById(id: number): Promise<UserDto> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    return UserMapper.toDto(user);
+  }
 }

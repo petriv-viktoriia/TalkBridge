@@ -5,4 +5,5 @@ export class UserDto {
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
+    role: string;
 }

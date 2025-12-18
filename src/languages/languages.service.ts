@@ -1,10 +1,8 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AssignLanguagesDto } from 'src/dtos/languages/assign.languages.dto';
 import { LanguageDto } from 'src/dtos/languages/language.dto';
 import { Language } from 'src/entities/language.entity';
-import { Profile } from 'src/entities/profile.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class LanguagesService {
@@ -68,5 +66,12 @@ export class LanguagesService {
   async delete(id: number) {
     const language = await this.findOne(id);
     return this.languageRepository.remove(language);
+  }
+
+  async findByUserId(userId: number) {
+    return this.languageRepository
+      .createQueryBuilder('language')
+      .innerJoin('language.profiles', 'profile', 'profile.userId = :userId', { userId })
+      .getMany();
   }
 }

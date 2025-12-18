@@ -7,6 +7,8 @@ import { ProfileMapper } from 'src/mappers/profile.mapper';
 import { User } from 'src/entities/user.entity';
 import { Language } from 'src/entities/language.entity';
 import { AssignLanguagesDto } from 'src/dtos/languages/assign.languages.dto';
+import { Interest } from 'src/entities/interest.entity';
+import { AssignInterestDto } from 'src/dtos/interests/assign.interest.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -19,6 +21,9 @@ export class ProfilesService {
 
         @InjectRepository(Language)
         private languageRepository: Repository<Language>,
+        
+        @InjectRepository(Interest)
+        private interestsRepository: Repository<Interest>,
     ) {}
 
     async create(dto: ProfileDto): Promise<ProfileDto> {
@@ -69,19 +74,17 @@ export class ProfilesService {
         return ProfileMapper.toDto(profile);
     }
 
-    async findAll(minAge?: number, maxAge?: number): Promise<ProfileDto[]> {
+    async findAll(minAge?: number, maxAge?: number, languageId?: number, level?: string, type?: string): Promise<ProfileDto[]> {
         const query = this.profilesRepository.createQueryBuilder('profile')
             .leftJoinAndSelect('profile.user', 'user')
             .leftJoinAndSelect('profile.interests', 'interests')
             .leftJoinAndSelect('profile.languages', 'languages');
 
-        if (minAge !== undefined) {
-            query.andWhere('profile.age >= :minAge', { minAge });
-        }
-
-        if (maxAge !== undefined) {
-            query.andWhere('profile.age <= :maxAge', { maxAge });
-        }
+        if (minAge !== undefined) query.andWhere('profile.age >= :minAge', { minAge });
+        if (maxAge !== undefined) query.andWhere('profile.age <= :maxAge', { maxAge });
+        if (languageId) query.andWhere('language.id = :languageId', { languageId });
+        if (level) query.andWhere('language.level = :level', { level });
+        if (type) query.andWhere('language.type = :type', { type });
 
         const profiles = await query.getMany();
         return ProfileMapper.toDtoList(profiles);
@@ -92,39 +95,116 @@ export class ProfilesService {
         if (result.affected === 0) throw new NotFoundException(`Profile ${id} not found`);
     }
 
-    async assignLanguages(profileId: number, dto: AssignLanguagesDto) {
-  const profile = await this.profilesRepository.findOne({
-    where: { id: profileId },
-    relations: ['languages'],
-  });
+    async assignLanguagesByUserId(userId: number, dto: AssignLanguagesDto) {
+      const profile = await this.profilesRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['languages'],
+      });
 
-  if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
 
-  const languages = await this.languageRepository.findBy({
-    id: In(dto.languageIds),
-  });
+      const languages = await this.languageRepository.findBy({
+        id: In(dto.languageIds),
+      });
 
-  profile.languages.push(
-    ...languages.filter(
-      l => !profile.languages.some(pl => pl.id === l.id),
-    ),
-  );
+      profile.languages.push(
+        ...languages.filter(
+          l => !profile.languages.some(pl => pl.id === l.id),
+        ),
+      );
 
-  return this.profilesRepository.save(profile);
-}
+      return this.profilesRepository.save(profile);
+    }
 
-async unassignLanguages(profileId: number, dto: AssignLanguagesDto) {
-  const profile = await this.profilesRepository.findOne({
-    where: { id: profileId },
-    relations: ['languages'],
-  });
+    async unassignLanguagesByUserId(userId: number, dto: AssignLanguagesDto) {
+      const profile = await this.profilesRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['languages'],
+      });
 
-  if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
 
-  profile.languages = profile.languages.filter(
-    l => !dto.languageIds.includes(l.id),
-  );
+      profile.languages = profile.languages.filter(
+        l => !dto.languageIds.includes(l.id),
+      );
 
-  return this.profilesRepository.save(profile);
-}
+      return this.profilesRepository.save(profile);
+    }
+
+
+    async findByUserId(userId: number): Promise<ProfileDto> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } }, relations: ['languages', 'user', 'interests'] });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+      return ProfileMapper.toDto(profile);
+    }
+
+    async updateByUserId(userId: number, dto: ProfileDto): Promise<ProfileDto> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } } });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+
+      Object.assign(profile, dto);
+      const updated = await this.profilesRepository.save(profile);
+      return ProfileMapper.toDto(updated);
+    }
+
+    async deleteByUserId(userId: number): Promise<void> {
+      const profile = await this.profilesRepository.findOne({ where: { user: { id: userId } } });
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
+      await this.profilesRepository.remove(profile);
+    }
+
+
+  async assignInterestsByUserId(userId: number, dto: AssignInterestDto) {
+    const profile = await this.profilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['interests'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`Profile for user ${userId} not found`);
+    }
+
+    const interests = await this.interestsRepository.findBy({
+      id: In(dto.interestIds),
+    });
+
+    if (interests.length !== dto.interestIds.length) {
+      throw new BadRequestException('Some interests do not exist');
+    }
+
+    profile.interests.push(
+      ...interests.filter(
+        i => !profile.interests.some(pi => pi.id === i.id),
+      ),
+    );
+
+    return this.profilesRepository.save(profile);
+  }
+
+  async removeInterestByUserId(userId: number, dto: AssignInterestDto) {
+    const profile = await this.profilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['interests'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`Profile for user ${userId} not found`);
+    }
+
+    profile.interests = profile.interests.filter(
+        i => !dto.interestIds.includes(i.id),
+      );
+
+    return this.profilesRepository.save(profile);
+  }
 }

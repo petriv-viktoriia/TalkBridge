@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { InterestDto } from 'src/dtos/interests/interest.dto';
 import { Interest } from 'src/entities/interest.entity';
-import { Profile } from 'src/entities/profile.entity';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
@@ -10,9 +9,6 @@ export class InterestsService {
     constructor(
         @InjectRepository(Interest)
         private interestsRepository: Repository<Interest>,
-
-        @InjectRepository(Profile)
-        private profileRepository: Repository<Profile>,
     ) {}
 
   async create(dto: InterestDto): Promise<Interest> {
@@ -67,25 +63,5 @@ export class InterestsService {
     await this.interestsRepository.delete(id);
   }
 
-  async assignInterestsToProfile(profileId: number, interestIds: number[]): Promise<Profile> {
-  const profile = await this.profileRepository.findOne({ where: { id: profileId }, relations: ['interests'] });
-  if (!profile) throw new NotFoundException(`Profile ${profileId} not found`);
 
-  const interests = await this.interestsRepository.find({ where: { id: In(interestIds) } });
-  if (interests.length !== interestIds.length) throw new BadRequestException('Some interests do not exist');
-
-  profile.interests = interests;
-  return this.profileRepository.save(profile);
-}
-
-  async removeInterestFromProfile(profileId: number, interestId: number): Promise<Profile> {
-    const user = await this.profileRepository.findOne({ where: { id: profileId }, relations: ['interests'] });
-    if (!user) throw new NotFoundException(`Profile ${profileId} not found`);
-
-    const exists = user.interests.find(interest => interest.id === interestId);
-    if (!exists) throw new BadRequestException(`Interest ${interestId} is not assigned to user ${profileId}`);
-
-    user.interests = user.interests.filter(interest => interest.id !== interestId);
-    return this.profileRepository.save(user);
-  }
 }
