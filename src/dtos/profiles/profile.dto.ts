@@ -5,10 +5,6 @@ export class ProfileDto {
   @IsOptional()
   id?: number;
 
-  @IsInt({ message: 'userId must be a number' })
-  @IsOptional()
-  userId?: number;
-
   @IsString()
   @IsOptional()
   userName?: string;

@@ -50,9 +50,9 @@ export class ProfilesController {
     return this.profilesService.removeInterestByUserId(userId, dto);
   }
 
-  @Post()
-  create(@Body() dto: ProfileDto): Promise<ProfileDto> {
-    return this.profilesService.create(dto);
+  @Post('me')
+  create(@CurrentUser('id') userId: number, @Body() dto: ProfileDto) {
+    return this.profilesService.create(userId, dto);
   }
 
   @Roles(UserRole.ADMIN)

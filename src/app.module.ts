@@ -7,8 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProfilesModule } from './profiles/profiles.module';
 import { InterestsModule } from './interests/interests.module';
 import { LanguagesModule } from './languages/languages.module';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -32,6 +32,7 @@ import { AuthModule } from './auth/auth.module';
     InterestsModule,
     LanguagesModule,
     AuthModule,
+    SubscriptionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
