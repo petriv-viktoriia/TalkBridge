@@ -26,15 +26,14 @@ export class ProfilesService {
         private interestsRepository: Repository<Interest>,
     ) {}
 
-    async create(dto: ProfileDto): Promise<ProfileDto> {
-        if (!dto.userId) throw new BadRequestException('userId is required');
+    async create(userId: number, dto: ProfileDto): Promise<ProfileDto> {
         if (!dto.userName) throw new BadRequestException('userName is required');
 
-        const user = await this.usersRepository.findOne({ where: { id: dto.userId } });
-        if (!user) throw new NotFoundException(`User ${dto.userId} not found`);
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) throw new NotFoundException(`User ${userId} not found`);
 
-        const existingProfile = await this.profilesRepository.findOne({ where: { user: { id: dto.userId } } });
-        if (existingProfile) throw new BadRequestException(`User ${dto.userId} already has a profile`);
+        const existingProfile = await this.profilesRepository.findOne({ where: { user: { id: userId } } });
+        if (existingProfile) throw new BadRequestException(`User ${userId} already has a profile`);
         
         const userNameExists = await this.profilesRepository.findOne({ where: { userName: dto.userName } });
         if (userNameExists) throw new BadRequestException(`userName: ${dto.userName} is already taken`);

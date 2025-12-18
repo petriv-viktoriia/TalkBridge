@@ -5,7 +5,6 @@ export class ProfileMapper {
   static toDto(profile: Profile): ProfileDto {
     return {
       id: profile.id,
-      userId: profile.user.id,
       userName: profile.userName,
       bio: profile.bio,
       avatarUrl: profile.avatarUrl,
