@@ -90,13 +90,15 @@ export class ProfilesService {
         if (result.affected === 0) throw new NotFoundException(`Profile ${id} not found`);
     }
 
-    async assignLanguages(profileId: number, dto: AssignLanguagesDto) {
+    async assignLanguagesByUserId(userId: number, dto: AssignLanguagesDto) {
       const profile = await this.profilesRepository.findOne({
-        where: { id: profileId },
+        where: { user: { id: userId } },
         relations: ['languages'],
       });
 
-      if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
 
       const languages = await this.languageRepository.findBy({
         id: In(dto.languageIds),
@@ -111,13 +113,15 @@ export class ProfilesService {
       return this.profilesRepository.save(profile);
     }
 
-    async unassignLanguages(profileId: number, dto: AssignLanguagesDto) {
+    async unassignLanguagesByUserId(userId: number, dto: AssignLanguagesDto) {
       const profile = await this.profilesRepository.findOne({
-        where: { id: profileId },
+        where: { user: { id: userId } },
         relations: ['languages'],
       });
 
-      if (!profile) throw new NotFoundException('Profile not found');
+      if (!profile) {
+        throw new NotFoundException(`Profile for user ${userId} not found`);
+      }
 
       profile.languages = profile.languages.filter(
         l => !dto.languageIds.includes(l.id),

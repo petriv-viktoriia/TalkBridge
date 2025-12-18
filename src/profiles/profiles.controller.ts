@@ -3,11 +3,27 @@ import { ProfilesService } from './profiles.service';
 import { ProfileDto } from 'src/dtos/profiles/profile.dto';
 import { AssignLanguagesDto } from 'src/dtos/languages/assign.languages.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('profiles')
 export class ProfilesController {
     constructor(private readonly profilesService: ProfilesService) {}
+
+  @Get('me')
+  getMyProfile(@CurrentUser('id') userId: number) {
+    return this.profilesService.findByUserId(userId);
+  }
+
+  @Put('me')
+  updateMyProfile(@CurrentUser('id') userId: number, @Body() dto: ProfileDto) {
+    return this.profilesService.updateByUserId(userId, dto);
+  }
+
+  @Delete('me')
+  deleteMyProfile(@CurrentUser('id') userId: number) {
+    return this.profilesService.deleteByUserId(userId);
+  }
 
   @Post()
   create(@Body() dto: ProfileDto): Promise<ProfileDto> {
@@ -34,30 +50,13 @@ export class ProfilesController {
     return this.profilesService.delete(+id);
   }
 
-  @Put(':id/languages')
-  assignLanguages(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignLanguagesDto,) {
-    return this.profilesService.assignLanguages(id, dto);
+  @Put('me/languages')
+  assignLanguages(@CurrentUser('id') userId: number, @Body() dto: AssignLanguagesDto,) {
+    return this.profilesService.assignLanguagesByUserId(userId, dto);
   }
 
-  @Delete(':id/languages')
-  unassignLanguages(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignLanguagesDto,) {
-    return this.profilesService.unassignLanguages(id, dto);
-  }
-
-  @Get('me')
-  getMyProfile(@Req() req) {
-    return this.profilesService.findByUserId(req.user.id);
-  }
-
-  // Оновити свій профіль
-  @Put('me')
-  updateMyProfile(@Req() req, @Body() dto: ProfileDto) {
-    return this.profilesService.updateByUserId(req.user.id, dto);
-  }
-
-  // Видалити свій профіль
-  @Delete('me')
-  deleteMyProfile(@Req() req) {
-    return this.profilesService.deleteByUserId(req.user.id);
+  @Delete('me/languages')
+  unassignLanguages(@CurrentUser('id') userId: number, @Body() dto: AssignLanguagesDto,) {
+    return this.profilesService.unassignLanguagesByUserId(userId, dto);
   }
 }
