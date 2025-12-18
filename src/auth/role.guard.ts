@@ -13,7 +13,6 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // отримуємо обов'язкові ролі
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [
       context.getHandler(),
       context.getClass(),
@@ -24,16 +23,13 @@ export class RolesGuard implements CanActivate {
 
     if (!userId) return false;
 
-    // отримуємо роль користувача з бази
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) return false;
 
-    // якщо ролі не задано, дозволяємо доступ лише авторизованому користувачу
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
-    // якщо ролі задано, перевіряємо
     return requiredRoles.includes(user.role);
   }
 }

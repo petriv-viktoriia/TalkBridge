@@ -3,10 +3,10 @@ import { LanguagesService } from './languages.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Language } from 'src/entities/language.entity';
 import { LanguagesController } from './languages.controller';
-import { Profile } from 'src/entities/profile.entity';
+import { User } from 'src/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Language, Profile])],
+  imports: [TypeOrmModule.forFeature([Language, User])],
   providers: [LanguagesService],
   exports: [LanguagesService],
   controllers: [LanguagesController],

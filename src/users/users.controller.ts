@@ -33,12 +33,15 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
   @Put(':id')
   async updateUser(@Param('id') id: string, @Body() updateUserDto: UserUpdateDto): Promise<UserDto> {
     return this.usersService.update(parseInt(id, 10), updateUserDto);
   }
 
   @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
   @Get()
   async getUsers(
     @Query('page') page: string,
@@ -54,6 +57,8 @@ export class UsersController {
     return this.usersService.findAll(pageNumber, limitNumber, sortFieldParsed, sortOrderParsed);
   }
 
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
     await this.usersService.delete(parseInt(id, 10));

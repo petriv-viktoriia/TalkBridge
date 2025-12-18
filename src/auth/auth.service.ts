@@ -1,4 +1,3 @@
-// auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,13 +20,11 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Оновлюємо токени та час останнього входу
     user.accessToken = accessToken;
     if (refreshToken) user.refreshToken = refreshToken;
     user.lastLogin = new Date();
     await this.userRepo.save(user);
 
-    // Генеруємо JWT для фронтенду
     const jwt = this.jwtService.sign({ sub: user.id, email: user.email });
     return { access_token: jwt, user };
   }

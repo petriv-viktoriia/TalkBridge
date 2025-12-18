@@ -2,12 +2,17 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, Use
 import { LanguagesService } from './languages.service';
 import { LanguageDto } from 'src/dtos/languages/language.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { UserRole } from 'src/entities/user.entity';
+import { RolesGuard } from 'src/auth/role.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('languages')
 export class LanguagesController {
     constructor(private readonly languagesService: LanguagesService) {}
 
+    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard)
     @Post()
     create(@Body() dto: LanguageDto) {
         return this.languagesService.create(dto);
@@ -23,18 +28,17 @@ export class LanguagesController {
         return this.languagesService.findOne(id);
     }
 
+    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard)
     @Put(':id')
     update(@Param('id', ParseIntPipe) id: number, @Body() dto: LanguageDto,) {
         return this.languagesService.update(id, dto);
     }
   
+    @Roles(UserRole.ADMIN)
+    @UseGuards(RolesGuard)
     @Delete(':id')
     delete(@Param('id') id: string) {
         return this.languagesService.delete(+id);
-    }
-
-    @Get()
-    getUserLanguages(@Req() req) {
-        return this.languagesService.findByUserId(req.user.id);
     }
 }

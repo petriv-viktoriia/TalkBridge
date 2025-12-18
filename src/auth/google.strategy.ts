@@ -23,7 +23,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       throw new UnauthorizedException('User not found');
     }
 
-    // Оновлюємо токени
     user.accessToken = accessToken;
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
