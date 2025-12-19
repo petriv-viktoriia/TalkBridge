@@ -9,6 +9,7 @@ import { InterestsModule } from './interests/interests.module';
 import { LanguagesModule } from './languages/languages.module';
 import { AuthModule } from './auth/auth.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     LanguagesModule,
     AuthModule,
     SubscriptionsModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
