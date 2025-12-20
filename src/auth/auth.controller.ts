@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 
@@ -12,10 +12,9 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthCallback(@Req() req) {
+  async googleAuthCallback(@Req() req, @Res() res) {
     const user = req.user;
-
-    const token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { access_token: token, user };
+    const token = this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
+    res.redirect(`http://localhost:3001?token=${token}`);
   }
 }

@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { CommentsModule } from './comments/comments.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CommentsModule } from './comments/comments.module';
     SubscriptionsModule,
     RatingsModule,
     CommentsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
